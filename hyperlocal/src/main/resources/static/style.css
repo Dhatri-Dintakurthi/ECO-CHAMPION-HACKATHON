@@ -1317,7 +1317,7 @@ footer {
     /* === STANDARDIZED INSIGHTS LAYOUT (SIDE-BY-SIDE EQUAL) === */
     .insights-row {
         display: grid;
-        grid-template-columns: 1fr 1fr;
+        grid-template-columns: 2fr 1fr;
         gap: 2.5rem;
         align-items: stretch;
         /* Ensures equal height */

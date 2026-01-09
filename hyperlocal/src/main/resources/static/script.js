@@ -67,9 +67,9 @@ async function manualRefresh() {
 
 async function updateDashboard(forced = false) {
     const now = new Date();
-    const timeOptions = { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true };
+    const timeOptions = { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true, timeZone: 'Asia/Kolkata' };
     const timeSpan = document.getElementById('time-span');
-    if (timeSpan) timeSpan.textContent = now.toLocaleTimeString(undefined, timeOptions);
+    if (timeSpan) timeSpan.textContent = now.toLocaleTimeString('en-IN', timeOptions);
 
     const [gridData, hotspots, alerts] = await Promise.all([
         fetchData('/pm25-data'),
@@ -78,7 +78,7 @@ async function updateDashboard(forced = false) {
     ]);
 
     const syncEl = document.getElementById('last-sync-time');
-    if (syncEl) syncEl.textContent = now.toLocaleTimeString();
+    if (syncEl) syncEl.textContent = now.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', second: '2-digit', timeZone: 'Asia/Kolkata' });
 
     if (gridData) {
         // Calculate average and animate
@@ -435,7 +435,7 @@ function renderAlerts(data) {
 
         div.innerHTML = `
             <div class="alert-top">
-                <span class="time">${new Date(alert.timestamp).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })}</span>
+                <span class="time">${new Date(alert.timestamp).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Kolkata' })}</span>
                 <span class="loc">${alert.gridName}</span>
             </div>
             <div class="alert-body">

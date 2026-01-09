@@ -7,6 +7,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Collectors;
@@ -231,7 +232,7 @@ public class PollutionService {
                     activeAlerts.add(0, new Alert(
                             id, name,
                             Math.round(finalPm * 100.0) / 100.0,
-                            LocalDateTime.now(),
+                            LocalDateTime.now(ZoneId.of("Asia/Kolkata")),
                             "HIGH_POLLUTION"));
                 }
             }
@@ -288,7 +289,7 @@ public class PollutionService {
      * Peaks during commuting hours and drops during late night.
      */
     private double calculateDiurnalBaseline() {
-        int hour = LocalDateTime.now().getHour();
+        int hour = LocalDateTime.now(ZoneId.of("Asia/Kolkata")).getHour();
         // Baseline reference: 50.0 µg/m³
         if (hour >= 8 && hour <= 10) {
             return 65.0; // Morning Rush Hour (+15)
