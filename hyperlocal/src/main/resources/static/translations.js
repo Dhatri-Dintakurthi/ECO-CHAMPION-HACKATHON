@@ -84,7 +84,17 @@ const translations = {
         language: "Language",
         english: "English",
         telugu: "తెలుగు",
-        hindi: "हिंदी"
+        hindi: "हिंदी",
+
+        // Comparison Mode
+        compare: "Compare",
+        exitComparison: "Exit Comparison",
+        selectSecondZone: "Select Second Zone",
+        comparisonView: "Zone Comparison",
+        difference: "Difference",
+        vs: "VS",
+        higher: "Higher",
+        lower: "Lower"
     },
 
     te: {
@@ -171,7 +181,17 @@ const translations = {
         language: "భాష",
         english: "English",
         telugu: "తెలుగు",
-        hindi: "हिंदी"
+        hindi: "हिंदी",
+
+        // Comparison Mode
+        compare: "పోల్చండి", // Compare
+        exitComparison: "పోలిక నుండి నిష్క్రమించు", // Exit Comparison
+        selectSecondZone: "రెండవ జోన్‌ను ఎంచుకోండి", // Select Second Zone
+        comparisonView: "జోన్ పోలిక", // Zone Comparison
+        difference: "తేడా", // Difference
+        vs: "వర్సెస్", // VS
+        higher: "అధిక", // Higher
+        lower: "తక్కువ" // Lower
     },
 
     hi: {
@@ -258,7 +278,17 @@ const translations = {
         language: "भाषा",
         english: "English",
         telugu: "తెలుగు",
-        hindi: "हिंदी"
+        hindi: "हिंदी",
+
+        // Comparison Mode
+        compare: "तुलना करें",
+        exitComparison: "तुलना से बाहर निकलें",
+        selectSecondZone: "दूसरा क्षेत्र चुनें",
+        comparisonView: "क्षेत्र तुलना",
+        difference: "अंतर",
+        vs: "बनाम",
+        higher: "अधिक",
+        lower: "कम"
     }
 };
 

@@ -640,6 +640,42 @@ td {
     letter-spacing: 0.025em;
 }
 
+#alert-panel {
+    display: flex;
+    flex-direction: column;
+    /* Prevent grid/flex stretching: */
+    align-self: flex-start !important;
+    height: fit-content !important;
+    max-height: 320px !important;
+}
+
+#alert-feed {
+    overflow-y: auto;
+    flex: 1;
+    padding-right: 5px;
+    max-height: 250px;
+    /* Reduced from 400px */
+}
+
+/* Custom Scrollbar for Alert Feed */
+#alert-feed::-webkit-scrollbar {
+    width: 6px;
+}
+
+#alert-feed::-webkit-scrollbar-track {
+    background: var(--slate-50);
+    border-radius: 3px;
+}
+
+#alert-feed::-webkit-scrollbar-thumb {
+    background: var(--slate-300);
+    border-radius: 3px;
+}
+
+#alert-feed::-webkit-scrollbar-thumb:hover {
+    background: var(--slate-400);
+}
+
 .alert-item {
     background: #fff1f2;
     border-left: 4px solid var(--rose-500);
@@ -1059,42 +1095,109 @@ footer {
     border-color: var(--indigo-200);
 }
 
-.chatbot-input {
-    padding: 15px 20px;
+/* 1. Ensure Window is a Flex Column */
+#chatbot-window {
+    display: flex !important;
+    flex-direction: column !important;
+    overflow: hidden !important;
+    /* Contain children */
+}
+
+/* 2. Messages takes all available space */
+#chatbot-messages {
+    flex: 1 1 auto;
+    overflow-y: auto;
+    padding: 15px;
     display: flex;
+    flex-direction: column;
     gap: 10px;
-    border-top: 1px solid var(--slate-100);
+    padding-bottom: 15px;
+    /* No hack needed */
+}
+
+/* 3. Input Area sits naturally below messages */
+.chatbot-input-area {
+    flex: 0 0 auto;
+    /* Don't grow or shrink */
+    position: relative;
+    /* Context for children */
+    top: auto;
+    bottom: auto;
+    left: auto;
+    right: auto;
+    height: auto;
+    /* Let content dictate height */
+    padding: 12px;
     background: white;
+    border-top: 1px solid #e2e8f0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    z-index: 10;
 }
 
-.chatbot-input input {
+.chatbot-input-area input {
     flex: 1;
-    border: 1px solid var(--slate-200);
+    background: #f1f5f9;
+    border: 1px solid transparent;
     padding: 10px 15px;
-    border-radius: 10px;
-    font-size: 0.85rem;
+    border-radius: 999px;
+    /* Pill */
+    font-size: 0.9rem;
+    color: #334155;
+    transition: all 0.2s;
 }
 
-.chatbot-input input:focus {
+.chatbot-input-area input:focus {
     outline: none;
-    border-color: var(--indigo-600);
+    background: white;
+    border-color: #6366f1;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
 }
 
+/* 4. Send Button - Force Circular */
 #chatbot-send-btn {
-    background: var(--indigo-600);
+    flex: 0 0 40px;
+    /* Fixed width */
+    width: 40px;
+    height: 40px;
+    border-radius: 50% !important;
+    /* Force Circle */
+    background: #4f46e5;
     color: white;
     border: none;
-    width: 40px;
-    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     cursor: pointer;
+    transition: transform 0.1s;
+    padding: 0;
 }
 
+#chatbot-send-btn i {
+    font-size: 1rem;
+    margin-right: 2px;
+    /* Visual optical adjustment */
+}
+
+#chatbot-send-btn:hover {
+    background: #4338ca;
+    transform: scale(1.05);
+}
+
+#chatbot-send-btn:active {
+    transform: scale(0.95);
+}
+
+/* 5. Disclaimer at the very bottom */
 .chatbot-disclaimer {
-    padding: 10px 20px;
+    flex: 0 0 auto;
+    padding: 8px;
     font-size: 0.65rem;
-    color: var(--slate-400);
     text-align: center;
-    background: var(--slate-50);
+    background: #f8fafc;
+    color: #94a3b8;
+    border-top: 1px solid #f1f5f9;
     font-style: italic;
 }
 
@@ -1211,9 +1314,96 @@ footer {
         max-height: 400px !important;
     }
 
+    /* === STANDARDIZED INSIGHTS LAYOUT (SIDE-BY-SIDE EQUAL) === */
     .insights-row {
-        grid-template-columns: 1fr !important;
-        gap: 1rem !important;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 2.5rem;
+        align-items: stretch;
+        /* Ensures equal height */
+    }
+
+    /* Common Card Styling for Insights */
+    #hotspot-list,
+    #alert-panel {
+        height: 450px !important;
+        /* Fixed identical height */
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        /* Reset any previous individual styles */
+        max-height: 450px !important;
+        align-self: unset !important;
+    }
+
+    /* Scroll Containers */
+    .hotspot-scroll-container {
+        flex: 1;
+        overflow-y: auto;
+        width: 100%;
+        margin-top: 10px;
+        padding-right: 5px;
+        /* Space for scrollbar */
+    }
+
+    #alert-feed {
+        flex: 1;
+        overflow-y: auto;
+        max-height: none !important;
+        /* Reset restrictions */
+        padding-right: 5px;
+    }
+
+    /* Custom Scrollbar for both */
+    .hotspot-scroll-container::-webkit-scrollbar,
+    #alert-feed::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    .hotspot-scroll-container::-webkit-scrollbar-track,
+    #alert-feed::-webkit-scrollbar-track {
+        background: var(--slate-50);
+        border-radius: 3px;
+    }
+
+    .hotspot-scroll-container::-webkit-scrollbar-thumb,
+    #alert-feed::-webkit-scrollbar-thumb {
+        background: var(--slate-300);
+        border-radius: 3px;
+    }
+
+    .hotspot-scroll-container::-webkit-scrollbar-thumb:hover,
+    #alert-feed::-webkit-scrollbar-thumb:hover {
+        background: var(--slate-400);
+    }
+
+    /* Ensure table fits inside */
+    #hotspot-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    /* Fix sticky header for hotspot table (optional but good) */
+    #hotspot-table thead th {
+        position: sticky;
+        top: 0;
+        background: white;
+        /* Needs opaque background */
+        z-index: 10;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    }
+
+    @media (max-width: 1024px) {
+        .insights-row {
+            grid-template-columns: 1fr;
+            /* Stack on smaller screens */
+        }
+
+        #hotspot-list,
+        #alert-panel {
+            height: auto !important;
+            max-height: 450px !important;
+        }
     }
 
     .section-header {
@@ -1541,11 +1731,6 @@ footer {
         max-height: none !important;
     }
 
-    #chatbot-toggle {
-        bottom: 15px !important;
-        right: 15px !important;
-    }
-
     /* Force all containers to respect viewport */
     .section-header,
     .view-header,
@@ -1558,203 +1743,212 @@ footer {
         max-width: 100% !important;
         overflow-x: hidden !important;
     }
-}
 
-/* Extra small mobile (360px and below) */
-@media (max-width: 360px) {
-    html {
-        font-size: 12px !important;
+    /* Extra small mobile (360px and below) */
+    @media (max-width: 360px) {
+        html {
+            font-size: 12px !important;
+        }
+
+        .header-content h1 {
+            font-size: 0.85rem !important;
+        }
+
+        .stat-card p {
+            font-size: 1.1rem !important;
+        }
+
+        .heatmap-tile {
+            min-width: 20px !important;
+            min-height: 20px !important;
+        }
+
+        .chart-wrapper {
+            height: 150px !important;
+        }
     }
 
-    .header-content h1 {
-        font-size: 0.85rem !important;
+    /* Landscape mobile (max-height: 500px) */
+    @media (max-height: 500px) and (orientation: landscape) {
+        header {
+            padding: 0.5rem 1rem !important;
+            position: relative !important;
+        }
+
+        .header-content h1 {
+            font-size: 0.85rem !important;
+        }
+
+        .description {
+            display: none !important;
+        }
+
+        main {
+            padding: 0.75rem !important;
+        }
+
+        .chart-wrapper {
+            height: 120px !important;
+        }
+
+        .grid-display {
+            max-height: 250px !important;
+        }
     }
 
-    .stat-card p {
-        font-size: 1.1rem !important;
+    /* Print styles */
+    @media print {
+        header {
+            position: static !important;
+        }
+
+        .theme-toggle,
+        .language-selector,
+        .refresh-btn,
+        #chatbot-container,
+        #download-report-btn {
+            display: none !important;
+        }
+
+        .card {
+            break-inside: avoid !important;
+            page-break-inside: avoid !important;
+        }
+
+        body {
+            background: white !important;
+        }
+
+        .heatmap-grid {
+            break-inside: avoid !important;
+        }
     }
 
-    .heatmap-tile {
-        min-width: 20px !important;
-        min-height: 20px !important;
+    /* Touch device optimizations */
+    @media (hover: none) and (pointer: coarse) {
+        .heatmap-tile:hover {
+            transform: none !important;
+        }
+
+        .heatmap-tile:active {
+            transform: scale(1.1) !important;
+        }
+
+        .legend-item:hover {
+            background: none !important;
+        }
+
+        .legend-item:active {
+            background: var(--slate-100) !important;
+        }
+
+        .grid-item:hover {
+            transform: none !important;
+        }
+
+        /* Larger touch targets */
+        button,
+        .legend-item,
+        .lang-option,
+        .heatmap-tile {
+            min-height: 40px !important;
+            min-width: 40px !important;
+        }
+
+        /* Prevent text selection on touch */
+        .heatmap-tile,
+        .legend-item,
+        .grid-item {
+            -webkit-user-select: none !important;
+            user-select: none !important;
+            -webkit-tap-highlight-color: transparent !important;
+        }
     }
 
-    .chart-wrapper {
-        height: 150px !important;
-    }
-}
-
-/* Landscape mobile (max-height: 500px) */
-@media (max-height: 500px) and (orientation: landscape) {
-    header {
-        padding: 0.5rem 1rem !important;
-        position: relative !important;
-    }
-
-    .header-content h1 {
-        font-size: 0.85rem !important;
-    }
-
-    .description {
-        display: none !important;
-    }
-
-    main {
-        padding: 0.75rem !important;
-    }
-
-    .chart-wrapper {
-        height: 120px !important;
-    }
-
-    .grid-display {
-        max-height: 250px !important;
-    }
-}
-
-/* Print styles */
-@media print {
-    header {
-        position: static !important;
-    }
-
-    .theme-toggle,
-    .language-selector,
-    .refresh-btn,
-    #chatbot-container,
-    #download-report-btn {
-        display: none !important;
-    }
-
-    .card {
-        break-inside: avoid !important;
-        page-break-inside: avoid !important;
-    }
-
-    body {
-        background: white !important;
-    }
-
-    .heatmap-grid {
-        break-inside: avoid !important;
-    }
-}
-
-/* Touch device optimizations */
-@media (hover: none) and (pointer: coarse) {
-    .heatmap-tile:hover {
-        transform: none !important;
-    }
-
-    .heatmap-tile:active {
-        transform: scale(1.1) !important;
-    }
-
-    .legend-item:hover {
-        background: none !important;
-    }
-
-    .legend-item:active {
-        background: var(--slate-100) !important;
-    }
-
-    .grid-item:hover {
-        transform: none !important;
-    }
-
-    /* Larger touch targets */
-    button,
-    .legend-item,
-    .lang-option,
-    .heatmap-tile {
-        min-height: 40px !important;
-        min-width: 40px !important;
-    }
-
-    /* Prevent text selection on touch */
-    .heatmap-tile,
-    .legend-item,
-    .grid-item {
-        -webkit-user-select: none !important;
-        user-select: none !important;
-        -webkit-tap-highlight-color: transparent !important;
-    }
-}
-/* ==========================================================================
+    /* ==========================================================================
    STRICT HEADER LAYOUT FIXES - FORCE WRAPPING ON ZOOM/MOBILE
    ========================================================================== */
 
-/* 1. Ensure the header container acts as a flexible wrapper */
-header .header-content > div:first-child {
-    display: flex !important;
-    flex-direction: row !important;
-    flex-wrap: wrap !important; /* CRITICAL: Enables wrapping */
-    justify-content: space-between !important;
-    align-items: center !important;
-    width: 100% !important;
-    gap: 1rem !important;
-}
-
-/* 2. The Title Section: Allows it to shrink/grow but wraps if < 300px space */
-header .header-content > div:first-child > div:first-child {
-    flex: 1 1 300px !important; /* Grow, Shrink, Basis */
-    min-width: 250px !important; /* Prevent crushing */
-    width: auto !important;
-}
-
-/* 3. The Buttons Section (Lang + Theme): Keeps them together, wraps as a unit */
-header .header-content > div:first-child > div:last-child {
-    display: flex !important;
-    flex: 0 0 auto !important; /* Do not grow or shrink, stay naturally sized */
-    flex-direction: row !important;
-    width: auto !important;
-    justify-content: flex-end !important;
-    gap: 10px !important;
-    white-space: nowrap !important; /* Keep buttons on one line relative to each other if possible */
-}
-
-/* 4. Fix h1 text wrapping inside the title section */
-header .header-content h1 {
-    white-space: normal !important;
-    word-break: break-word !important;
-    overflow-wrap: break-word !important;
-    line-height: 1.3 !important;
-    font-size: clamp(1rem, 4vw, 1.5rem) !important; /* Smooth scaling */
-}
-
-/* 5. Mobile/Small Screen Specific Overrides (When wrapping has happened) */
-@media (max-width: 600px) {
-    /* Stack strictly on very small screens */
-    header .header-content > div:first-child {
-        flex-direction: column !important;
-        align-items: stretch !important;
-    }
-    
-    header .header-content > div:first-child > div:last-child {
+    /* 1. Ensure the header container acts as a flexible wrapper */
+    header .header-content>div:first-child {
+        display: flex !important;
+        flex-direction: row !important;
+        flex-wrap: wrap !important;
+        /* CRITICAL: Enables wrapping */
+        justify-content: space-between !important;
+        align-items: center !important;
         width: 100% !important;
-        justify-content: space-between !important; /* Spread buttons out */
+        gap: 1rem !important;
     }
-    
-    .language-selector {
-        flex: 1 !important;
-        justify-content: center !important;
+
+    /* 2. The Title Section: Allows it to shrink/grow but wraps if < 300px space */
+    header .header-content>div:first-child>div:first-child {
+        flex: 1 1 300px !important;
+        /* Grow, Shrink, Basis */
+        min-width: 250px !important;
+        /* Prevent crushing */
+        width: auto !important;
     }
-    
-    .theme-toggle {
+
+    /* 3. The Buttons Section (Lang + Theme): Keeps them together, wraps as a unit */
+    header .header-content>div:first-child>div:last-child {
+        display: flex !important;
         flex: 0 0 auto !important;
+        /* Do not grow or shrink, stay naturally sized */
+        flex-direction: row !important;
+        width: auto !important;
+        justify-content: flex-end !important;
+        gap: 10px !important;
+        white-space: nowrap !important;
+        /* Keep buttons on one line relative to each other if possible */
     }
-}
+
+    /* 4. Fix h1 text wrapping inside the title section */
+    header .header-content h1 {
+        white-space: normal !important;
+        word-break: break-word !important;
+        overflow-wrap: break-word !important;
+        line-height: 1.3 !important;
+        font-size: clamp(1rem, 4vw, 1.5rem) !important;
+        /* Smooth scaling */
+    }
+
+    /* 5. Mobile/Small Screen Specific Overrides (When wrapping has happened) */
+    @media (max-width: 600px) {
+
+        /* Stack strictly on very small screens */
+        header .header-content>div:first-child {
+            flex-direction: column !important;
+            align-items: stretch !important;
+        }
+
+        header .header-content>div:first-child>div:last-child {
+            width: 100% !important;
+            justify-content: space-between !important;
+            /* Spread buttons out */
+        }
+
+        .language-selector {
+            flex: 1 !important;
+            justify-content: center !important;
+        }
+
+        .theme-toggle {
+            flex: 0 0 auto !important;
+        }
+    }
 
 
-/* ==========================================================================
+    /* ==========================================================================
    STRICT HEADER POSITIONING - DISABLE STICKY
    ========================================================================== */
-header {
-    position: relative !important; /* Force natural flow */
-    top: auto !important;
-    width: 100% !important;
-    max-width: 100vw !important;
-    left: 0 !important;
-    right: 0 !important;
+    header {
+        position: relative !important;
+        /* Force natural flow */
+        top: auto !important;
+        width: 100% !important;
+        max-width: 100vw !important;
+        left: 0 !important;
+        right: 0 !important;
+    }
 }
-

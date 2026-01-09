@@ -13,12 +13,15 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <!-- CSS Loading Order is Critical -->
-    <link rel="stylesheet" href="style.css?v=102.0">
-    <link rel="stylesheet" href="dark-mode.css?v=3.0">
+    <link rel="stylesheet" href="style.css?v=109.0">
+    <link rel="stylesheet" href="dark-mode.css?v=4.0">
     <link rel="stylesheet" href="mobile-fixes.css?v=3.0">
+    <link rel="stylesheet" href="comparison.css?v=1.0">
 
     <!-- Chart.js for historical data visualization -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <link rel="icon"
+        href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌬️</text></svg>">
 </head>
 
 <body>
@@ -151,12 +154,30 @@
                     <div id="selected-zone-view" class="card">
                         <div class="view-header">
                             <h3>Detailed Zone Analysis</h3>
-                            <p style="font-size: 0.85rem; color: var(--slate-500); margin-top: 8px;">Estimated PM2.5
-                                (Zone-Level) with environmental context factors.</p>
+                            <button id="compare-btn" class="header-action-btn small-btn"
+                                onclick="startComparisonMode()">
+                                <i class="fa-solid fa-scale-balanced"></i> <span data-i18n="compare">Compare</span>
+                            </button>
                         </div>
+                        <p style="font-size: 0.85rem; color: var(--slate-500); margin-top: 8px;">Estimated PM2.5
+                            (Zone-Level) with environmental context factors.</p>
                         <div id="selected-zone-content">
                             <p style="text-align: center; color: var(--slate-400); padding: 2rem;">Select a zone from
                                 the map to view details.</p>
+                        </div>
+                    </div>
+
+                    <div id="comparison-view" class="card hidden">
+                        <div class="view-header">
+                            <h3 data-i18n="comparisonView">Zone Comparison</h3>
+                            <button class="header-action-btn small-btn" onclick="exitComparisonMode()"
+                                style="background: var(--slate-200); color: var(--slate-700);">
+                                <i class="fa-solid fa-xmark"></i> <span data-i18n="exitComparison">Exit
+                                    Comparison</span>
+                            </button>
+                        </div>
+                        <div id="comparison-content" class="comparison-container">
+                            <!-- Populated by JS -->
                         </div>
                     </div>
 
@@ -179,21 +200,23 @@
                     The following zones show consistent high PM2.5 levels over multiple monitoring cycles, requiring
                     immediate administrative attention.
                 </p>
-                <table id="hotspot-table">
-                    <thead>
-                        <tr>
-                            <th data-i18n="gridId">Grid ID</th>
-                            <th data-i18n="location">Location</th>
-                            <th data-i18n="pm25Value">PM2.5 Value</th>
-                            <th data-i18n="regulatoryStatus">Regulatory Status</th>
-                        </tr>
-                    </thead>
-                    <tbody id="hotspot-table-body">
-                        <tr>
-                            <td colspan="4" style="text-align: center; color: var(--slate-400);">Loading...</td>
-                        </tr>
-                    </tbody>
-                </table>
+                <div class="hotspot-scroll-container">
+                    <table id="hotspot-table">
+                        <thead>
+                            <tr>
+                                <th data-i18n="gridId">Grid ID</th>
+                                <th data-i18n="location">Location</th>
+                                <th data-i18n="pm25Value">PM2.5 Value</th>
+                                <th data-i18n="regulatoryStatus">Regulatory Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="hotspot-table-body">
+                            <tr>
+                                <td colspan="4" style="text-align: center; color: var(--slate-400);">Loading...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
 
             <div id="alert-panel" class="card">
@@ -243,34 +266,66 @@
         let activeCategoryFilter = null;
 
         function filterCategory(category) {
-            if (activeCategoryFilter === category) {
-                // Clear filter
-                activeCategoryFilter = null;
-                document.getElementById('filter-status').style.display = 'none';
-                document.querySelectorAll('.legend-item').forEach(item => item.classList.remove('active'));
-                document.querySelectorAll('.grid-item, .heatmap-tile').forEach(el => el.style.display = '');
-            } else {
-                // Apply filter
-                activeCategoryFilter = category;
-                document.getElementById('filter-status').style.display = 'block';
-                document.getElementById('active-filter-name').textContent = category;
+            // Trim and normalize for comparison
+            const targetCat = category.trim().toLowerCase();
+            const currentCat = activeCategoryFilter ? activeCategoryFilter.trim().toLowerCase() : null;
 
-                // Update legend
+            if (currentCat === targetCat) {
+                // Clear filter (Toggle OFF)
+                activeCategoryFilter = null;
+                window.activeCategoryFilter = null; // Sync with global
+
+                const filterStatus = document.getElementById('filter-status');
+                if (filterStatus) filterStatus.style.display = 'none';
+
+                document.querySelectorAll('.legend-item').forEach(item => item.classList.remove('active'));
+
+                // Show ALL grid items and heatmap tiles
+                document.querySelectorAll('.grid-item, .heatmap-tile').forEach(el => {
+                    el.style.display = '';
+                    el.classList.remove('hidden');
+                });
+            } else {
+                // Apply filter (Toggle ON)
+                activeCategoryFilter = category;
+                window.activeCategoryFilter = category; // Sync with global
+
+                const filterStatus = document.getElementById('filter-status');
+                const activeFilterName = document.getElementById('active-filter-name');
+
+                if (filterStatus) filterStatus.style.display = 'block';
+                if (activeFilterName) activeFilterName.textContent = category;
+
+                // Update legend UI
                 document.querySelectorAll('.legend-item').forEach(item => {
-                    item.classList.toggle('active', item.dataset.category === category);
+                    const itemCat = (item.dataset.category || '').trim().toLowerCase();
+                    item.classList.toggle('active', itemCat === targetCat);
                 });
 
                 // Filter grid items
                 document.querySelectorAll('.grid-item').forEach(item => {
-                    item.style.display = item.dataset.category === category ? '' : 'none';
+                    const itemCat = (item.dataset.category || '').trim().toLowerCase();
+                    if (itemCat === targetCat) {
+                        item.style.display = '';
+                    } else {
+                        item.style.display = 'none';
+                    }
                 });
 
                 // Filter heatmap tiles
                 document.querySelectorAll('.heatmap-tile').forEach(tile => {
-                    tile.style.display = tile.dataset.category === category ? '' : 'none';
+                    const tileCat = (tile.dataset.category || '').trim().toLowerCase();
+                    if (tileCat === targetCat) {
+                        tile.style.display = '';
+                        tile.classList.remove('hidden');
+                    } else {
+                        // tile.style.display = 'none'; // Older method
+                        tile.classList.add('hidden'); // Use class for consistency
+                    }
                 });
             }
         }
+
 
         function manualRefresh() {
             if (typeof updateDashboard === 'function') {
@@ -278,8 +333,8 @@
             }
         }
     </script>
-    <script src="translations.js?v=4.0"></script>
-    <script src="script.js?v=30.0"></script>
+    <script src="translations.js?v=6.0"></script>
+    <script src="script.js?v=36.0"></script>
 </body>
 
 </html>

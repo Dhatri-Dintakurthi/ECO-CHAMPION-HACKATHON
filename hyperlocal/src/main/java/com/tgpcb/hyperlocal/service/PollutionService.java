@@ -3,6 +3,7 @@ package com.tgpcb.hyperlocal.service;
 import com.tgpcb.hyperlocal.model.AirQualityData;
 import com.tgpcb.hyperlocal.model.Alert;
 import com.tgpcb.hyperlocal.model.GridZone;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -54,6 +55,8 @@ public class PollutionService {
         }
     }
 
+    // Run every 10 seconds to simulate real-time updates
+    @Scheduled(fixedRate = 10000)
     public void updatePollutionLevels() {
         Random random = new Random();
         double basePm25 = calculateDiurnalBaseline();

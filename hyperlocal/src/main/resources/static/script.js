@@ -125,8 +125,10 @@ function renderHeatmap(data) {
 
     sortedData.forEach(grid => {
         const tile = document.createElement('div');
-        // Use replaceAll to handle all spaces, not just the first one
-        tile.className = `heatmap-tile tile-${grid.category.toLowerCase().replaceAll(' ', '-')}`;
+        // Trim category to prevent class name errors with trailing spaces
+        const catClass = grid.category.trim().toLowerCase().replaceAll(' ', '-');
+        tile.className = `heatmap-tile tile-${catClass}`;
+        tile.dataset.category = grid.category; // Required for client-side filtering
         tile.title = `${grid.name}: ${grid.pm25Value.toFixed(1)} µg/m³`;
 
         const currentCat = grid.category.trim().toLowerCase();
@@ -144,6 +146,14 @@ function renderHeatmap(data) {
         }
 
         tile.onclick = () => {
+            if (comparisonMode && firstZoneForComparison) {
+                // Determine if this is a different zone
+                if (grid.id !== firstZoneForComparison) {
+                    renderComparison(firstZoneForComparison, grid.id);
+                    return;
+                }
+            }
+
             selectedGridId = grid.id;
             renderSelectedZone(grid);
             renderHeatmap(data); // Highlight selection
@@ -154,6 +164,14 @@ function renderHeatmap(data) {
                 document.querySelectorAll('.grid-item').forEach(el => el.classList.remove('active-selection'));
                 card.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 card.classList.add('active-selection');
+            }
+
+            // If we were in comparison view but clicked a single zone effectively resetting, exit comparison?
+            // Or just ignore if not in comparison mode.
+            if (!comparisonMode) {
+                document.getElementById('comparison-view').classList.add('hidden');
+                document.getElementById('selected-zone-view').classList.remove('hidden');
+                document.getElementById('grid-view').classList.remove('hidden');
             }
         };
 
@@ -183,6 +201,8 @@ function renderSelectedZone(grid) {
         ? (grid.pm25Value > prevVal ? '<i class="fa-solid fa-arrow-trend-up" style="color: var(--rose-500)"></i>' : '<i class="fa-solid fa-arrow-trend-down" style="color: var(--emerald-500)"></i>')
         : '';
 
+    const catClass = grid.category.trim().toLowerCase().replaceAll(' ', '-');
+
     content.innerHTML = `
         <div class="selected-detail-grid">
             <div class="selected-icon">
@@ -191,7 +211,7 @@ function renderSelectedZone(grid) {
             <div class="selected-main">
                 <h2 style="margin: 0; font-size: 1.5rem;">${grid.name}</h2>
                 <div style="display: flex; gap: 1rem; align-items: center; margin-top: 0.5rem;">
-                    <span class="status cat-${grid.category.toLowerCase().replaceAll(' ', '-')}">${grid.category} ${t('quality')}</span>
+                    <span class="status cat-${grid.category.trim().toLowerCase().replaceAll(' ', '-')}">${grid.category} ${t('quality')}</span>
                     <span style="color: var(--slate-500); font-size: 0.9rem;">${t('zoneId')}: ${grid.id}</span>
                     ${trend}
                 </div>
@@ -233,8 +253,10 @@ function renderGrid(data) {
     data.forEach(grid => {
         const div = document.createElement('div');
         div.id = `card-${grid.id}`;
-        // Use replaceAll to handle all spaces
-        div.className = `grid-item cat-${grid.category.toLowerCase().replaceAll(' ', '-')}`;
+        // Trim category to prevent class name errors
+        const catClass = grid.category.trim().toLowerCase().replaceAll(' ', '-');
+        div.className = `grid-item cat-${catClass}`;
+        div.dataset.category = grid.category; // Required for client-side filtering
 
         const currentCat = grid.category.trim().toLowerCase();
         const filterCat = window.activeCategoryFilter ? window.activeCategoryFilter.trim().toLowerCase() : null;
@@ -276,12 +298,25 @@ function renderGrid(data) {
         `;
 
         div.onclick = () => {
+            if (comparisonMode && firstZoneForComparison) {
+                if (grid.id !== firstZoneForComparison) {
+                    renderComparison(firstZoneForComparison, grid.id);
+                    return;
+                }
+            }
+
             selectedGridId = grid.id;
             renderSelectedZone(grid);
             renderHeatmap(data);
             document.querySelectorAll('.grid-item').forEach(el => el.classList.remove('active-selection'));
             div.classList.add('active-selection');
             container.parentElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+            if (!comparisonMode) {
+                document.getElementById('comparison-view').classList.add('hidden');
+                document.getElementById('selected-zone-view').classList.remove('hidden');
+                document.getElementById('grid-view').classList.remove('hidden');
+            }
         };
 
         fragment.appendChild(div);
@@ -313,11 +348,12 @@ function renderHotspots(data) {
             if (grid.category === 'Poor' || grid.category === 'Very Poor') {
                 displayStatus = `⚠️ ${grid.category} Air Quality`;
             }
+            const catClass = grid.category.trim().toLowerCase().replaceAll(' ', '-');
             tr.innerHTML = `
                 <td>#${grid.id.split('-').slice(1).join('')}</td>
                 <td style="font-weight: 600;">${grid.name}</td>
                 <td><div class="pm-pill">${grid.pm25Value.toFixed(1)}</div></td>
-                <td><span class="status cat-${grid.category.toLowerCase().replaceAll(' ', '-')}">${displayStatus}</span></td>
+                <td><span class="status cat-${catClass}">${displayStatus}</span></td>
             `;
             tbody.appendChild(tr);
         });
@@ -422,112 +458,94 @@ setInterval(updateDashboard, 60000);
 
 /* --- Chatbot Logic (Rule-Based) --- */
 const FAQ_DATA = {
-    "why is air quality poor": "Air quality is categorized as 'Poor' (61-90 µg/m³) or 'Very Poor' (>90 µg/m³) due to factors like high traffic density, industrial emissions, and stagnant air conditions. Our monitoring grid helps identify these zones for regulatory attention.",
-    "poor quality": "Air quality is 'Poor' when PM2.5 levels are between 61 and 90 µg/m³.",
-    "very poor quality": "Air quality is 'Very Poor' when PM2.5 levels exceed 90 µg/m³, indicating a critical environmental situation.",
-    "above 60": "A value above 60 µg/m³ indicates Poor air quality. If it exceeds 90 µg/m³, it is classified as Very Poor.",
-    "active alert mean": "An active alert is triggered when a hyperlocal grid records PM2.5 levels in the Poor (61-90) or Very Poor (>90) categories, signaling a need for intervention.",
-    "hotspots identified": "Hotspots are identified by analyzing zones that consistently show Very Poor or Poor PM2.5 levels across multiple monitoring cycles.",
-    "harmful": "High PM2.5 levels can penetrate deep into the lungs and bloodstream, posing significant risks for children, the elderly, and those with pre-existing respiratory conditions.",
-    "what is pm2.5": "PM2.5 refers to fine particulate matter 2.5 micrometers or smaller in diameter. These particles are a key indicator of air pollution and health risk.",
-    "pm2.5": "PM2.5 refers to fine particulate matter 2.5 micrometers or smaller in diameter.",
-    "precautions": "During Poor or Very Poor air quality, it is recommended to wear N95 masks, use indoor air purifiers, and significantly reduce outdoor activities.",
-    "default": "I am an informational assistant for the TGPCB Hyperlocal Monitor. I can help explain air quality categories (Good, Moderate, Poor, Very Poor) and general safety guidance."
+    // === PM2.5 & Air Quality Basics ===
+    "what is pm2.5": "PM2.5 refers to fine particulate matter less than 2.5 micrometers in diameter. These particles are smaller than a human hair and can penetrate deep into the lungs and bloodstream.",
+    "pm2.5 mean": "PM2.5 stands for Particulate Matter 2.5. It is a key indicator of air pollution, consisting of sulfate, nitrates, and black carbon.",
+    "why is air quality poor": "Air quality is 'Poor' (61-90 µg/m³) due to high traffic emissions, industrial activity, construction dust, and weather conditions that trap pollutants.",
+    "poor quality": "Air quality is considered 'Poor' when PM2.5 levels are between 61-90 µg/m³. Sensitive groups should reduce outdoor activity.",
+    "very poor": "Air quality is 'Very Poor' when PM2.5 exceeds 90 µg/m³. This is a serious health risk, and everyone should avoid outdoor exertion.",
+    "good quality": "Air quality is 'Good' when PM2.5 is below 30 µg/m³. It poses little or no risk.",
+    "moderate quality": "Air quality is 'Moderate' (31-60 µg/m³). It is generally acceptable, but sensitive people might have minor issues.",
+
+    // === Health & Safety ===
+    "is it harmful": "Yes, high PM2.5 levels are harmful. They can cause respiratory issues, heart disease, and aggravate asthma. Long-term exposure is linked to reduced lung function.",
+    "health effects": "Exposure to high PM2.5 can lead to coughing, shortness of breath, asthma attacks, and chronic bronchitis.",
+    "safe level": "The safest PM2.5 level is 0-30 µg/m³. Above 60 µg/m³ is considered unhealthy.",
+    "precautions": "1. Wear N95 masks outdoors.\n2. Use air purifiers indoors.\n3. Keep windows closed during peak traffic hours.\n4. Avoid morning jogs in smoggy areas.",
+    "should i go out": "If the status is 'Poor' or 'Very Poor', it is best to stay indoors, especially for children and the elderly.",
+
+    // === App Features & Technical ===
+    "what is an active alert": "An 'Active Alert' is triggered when a specific grid zone reports PM2.5 levels above 90 µg/m³ (Very Poor) for sustained periods.",
+    "how do you measure": "We act as a decision support system using a grid of hyperlocal sensors that measure PM2.5 concentration in real-time.",
+    "hotspot": "A 'Hotspot' is a zone that consistently reports high pollution levels compared to its neighbors.",
+    "refresh rate": "The dashboard updates every 60 seconds with the latest sensor data.",
+    "comparison mode": "You can compare two zones side-by-side by selecting a zone, clicking 'Compare', and then selecting a second zone.",
+
+    // === General Conversation ===
+    "hello": "Hello! I am the TGPCB Air Quality Assistant. I can answer questions about Hyderabad's air quality, PM2.5 levels, and safety precautions.",
+    "hi": "Hi there! How can I help you with air quality information today?",
+    "who are you": "I am an AI assistant designed to help you understand the Hyderabad Hyperlocal Air Quality Monitoring System.",
+    "thank you": "You're welcome! Stay safe and breathe easy.",
+    "help": "You can ask me things like:\n- 'What is PM2.5?'\n- 'Why is it poor?'\n- 'What are the precautions?'\n- 'Is it safe outside?'",
+
+    // === Specific Thresholds ===
+    "above 60 indicate": "A value above 60 µg/m³ indicates 'Poor' air quality. If it exceeds 90 µg/m³, it is classified as 'Very Poor'. Alerting authorities is recommended.",
+    "value 60": "A value above 60 µg/m³ indicates 'Poor' air quality.",
+
+    // === Fallback ===
+    "default": "I'm not sure about that. Try asking about 'PM2.5', 'Health Effects', 'Precautions', or 'Air Quality Levels'."
 };
 
-function toggleChat() {
-    const container = document.getElementById('chatbot-container');
-    container.classList.toggle('chatbot-expanded');
-    container.classList.toggle('chatbot-collapsed');
-
-    if (container.classList.contains('chatbot-expanded')) {
-        document.getElementById('chatbot-text-input').focus();
-    }
-}
+// function toggleChat() - Removed as it was duplicate.
 
 function addMessage(text, isUser = false) {
+    // Helper function used by initial greeting
     const messagesContainer = document.getElementById('chatbot-messages');
     const msgDiv = document.createElement('div');
     msgDiv.className = isUser ? 'user-msg' : 'bot-msg';
-    msgDiv.textContent = text;
+    msgDiv.innerHTML = text;
     messagesContainer.appendChild(msgDiv);
     messagesContainer.scrollTop = messagesContainer.scrollHeight;
 }
 
+// Initial Greeting
+setTimeout(() => {
+    const messagesContainer = document.getElementById('chatbot-messages');
+    if (messagesContainer && messagesContainer.children.length === 0) {
+        addMessage(`👋 <strong>Hello!</strong><br>I am the TGPCB Air Quality Assistant.<br><br>Ask me about:<br>• active alerts<br>• health precautions<br>• PM2.5 levels`, false);
+    }
+}, 1000);
+
+// Legacy function - redirect to main logic if called
 function askChatbot(question) {
     if (!question.trim()) return;
-
+    // Uses the same logic as sendChatMessage (which is called by the UI)
+    // This is just a bridge in case it's called programmatically
+    console.log("askChatbot called (legacy wrapper)");
+    // We can't easily call sendChatMessage's internal UI logic without simulating a click, 
+    // but generating a response is what matters.
+    const response = generateChatResponse(question);
     addMessage(question, true);
-
-    const query = question.toLowerCase().trim();
-    // Ultra-clean query for matching: remove EVERYTHING except letters and numbers
-    const matchQuery = query.replace(/[^a-z0-9]/g, '');
-
-    let response = FAQ_DATA["default"];
-
-    console.log("Chatbot v3 Processing Query:", query);
-    console.log("Match Query:", matchQuery);
-
-    // 1. HARD PRIORITY: Check for threshold keywords first (highest priority)
-    const thresholdKeywords = ['above60', '60indicate', 'valueabove60', '60value', 'above60ugm3'];
-    if (thresholdKeywords.some(tk => matchQuery.includes(tk))) {
-        console.log("Threshold priority match triggered.");
-        response = FAQ_DATA["above 60 indicate"];
-    } else {
-        // 2. BACKUP: Longest match first for other FAQs
-        const sortedKeys = Object.keys(FAQ_DATA)
-            .filter(k => k !== 'default' && k !== 'above 60 indicate' && k !== 'above 60' && k !== 'value above 60')
-            .sort((a, b) => b.length - a.length);
-
-        for (const key of sortedKeys) {
-            const matchKey = key.toLowerCase().replace(/[^a-z0-9]/g, '');
-            if (matchQuery.includes(matchKey)) {
-                console.log("Standard match found for key:", key);
-                response = FAQ_DATA[key];
-                break;
-            }
-        }
-    }
-
-    // 3. Safety Fallback for restricted topics
-    const restrictedKeywords = ["increase tomorrow", "safe for me", "medicine", "prediction"];
-    if (restrictedKeywords.some(keyword => query.includes(keyword))) {
-        response = FAQ_DATA["default"];
-    }
-
-    // Simulate typing delay
-    setTimeout(() => {
-        addMessage(response, false);
-    }, 500);
+    setTimeout(() => addMessage(response, false), 500);
 }
 
 // Event Listeners for Chatbot
 document.addEventListener('DOMContentLoaded', () => {
     const toggleBtn = document.getElementById('chatbot-toggle');
     const closeBtn = document.getElementById('chatbot-close');
-    const sendBtn = document.getElementById('chatbot-send-btn');
-    const input = document.getElementById('chatbot-text-input');
 
-    toggleBtn.addEventListener('click', toggleChat);
-    closeBtn.addEventListener('click', toggleChat);
+    // Toggle Button Logic
+    if (!toggleBtn) {
+        console.warn('Chatbot toggle button not found in DOM');
+    }
 
-    sendBtn.addEventListener('click', () => {
-        const text = input.value;
-        if (text) {
-            askChatbot(text);
-            input.value = '';
-        }
-    });
+    // Close Button Logic
+    if (closeBtn) {
+        closeBtn.addEventListener('click', toggleChatbot);
+    }
 
-    input.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') {
-            const text = input.value;
-            if (text) {
-                askChatbot(text);
-                input.value = '';
-            }
-        }
-    });
+    // Note: Send Button and Input Event Listeners are handled by inline onclick/onkeypress in HTML
+    // pointing to sendChatMessage(). We do NOT need to add them here to avoid double-firing.
 });
 
 /* ========================================
@@ -758,13 +776,21 @@ window.changeLanguage = changeLanguage;
    ======================================== */
 
 function toggleChatbot() {
+    console.log("Toggle Chatbot triggered");
     const container = document.getElementById('chatbot-container');
-    container.classList.toggle('chatbot-expanded');
 
-    // Focus input when opened
+    // Toggle logic: if it has expanded, remove it and add collapsed. Else swap.
     if (container.classList.contains('chatbot-expanded')) {
+        container.classList.remove('chatbot-expanded');
+        container.classList.add('chatbot-collapsed');
+    } else {
+        container.classList.remove('chatbot-collapsed');
+        container.classList.add('chatbot-expanded');
+
+        // Focus input
         setTimeout(() => {
-            document.getElementById('chatbot-text-input').focus();
+            const input = document.getElementById('chatbot-text-input');
+            if (input) input.focus();
         }, 300);
     }
 }
@@ -804,28 +830,185 @@ function addMessageToChat(sender, text) {
 }
 
 function generateChatResponse(input) {
-    const lowerInput = input.toLowerCase();
+    const query = input.toLowerCase().trim();
+    const matchQuery = query.replace(/[^a-z0-9]/g, ''); // Clean for matching
 
-    if (lowerInput.includes('pm2.5') || lowerInput.includes('particulate')) {
-        return 'PM2.5 refers to fine particulate matter less than 2.5 micrometers in diameter. These particles can penetrate deep into lung tissue and enter the bloodstream, posing serious health risks including heart and lung disease.';
-    }
-    if (lowerInput.includes('health') || lowerInput.includes('safe') || lowerInput.includes('danger')) {
-        return 'Health impacts depend on PM2.5 levels. Good (0-30) is safe. Moderate (31-60) may affect sensitive groups. Poor (>60) is unhealthy for everyone, and Very Poor (>90) can trigger emergency conditions.';
-    }
-    if (lowerInput.includes('hyderabad') || lowerInput.includes('city')) {
-        return 'Hyderabad air quality varies by zone. High traffic areas like LB Nagar often show higher pollution levels due to vehicular emissions and dust resuspension.';
-    }
-    if (lowerInput.includes('alert') || lowerInput.includes('warning')) {
-        return 'The system generates alerts when a zone stays in the "Very Poor" category (>90 µg/m³) for more than 3 consecutive update cycles. These alerts are sent to regulatory authorities.';
-    }
-    if (lowerInput.includes('hello') || lowerInput.includes('hi')) {
-        return 'Hello! I am the TGPCB Air Quality Assistant. Ask me about PM2.5 levels, health impacts, or specific zones in Hyderabad.';
+    // 1. Check FAQ_DATA presence
+    if (typeof FAQ_DATA === 'undefined') {
+        return "System Error: Knowledge base not loaded.";
     }
 
-    return 'I am trained to answer questions about air quality and the monitoring system. Could you try rephrasing your question regarding PM2.5, health impacts, or alerts?';
+    // 2. Priority Keyword Matching (Thresholds)
+    const thresholdKeywords = ['above60', '60indicate', 'valueabove60', '60value', 'above60ugm3'];
+    if (thresholdKeywords.some(tk => matchQuery.includes(tk))) {
+        return FAQ_DATA["above 60 indicate"] || FAQ_DATA["above 60"];
+    }
+
+    // 3. Smart Fuzzy Matching against FAQ Keys
+
+    // Helper: Remove stop words
+    const removeStopWords = (str) => {
+        return str.replace(/\b(the|is|are|a|an|in|on|of|do|does|did|what|why|how)\b/g, '')
+            .replace(/[^a-z0-9]/g, '');
+    };
+
+    const cleanInput = removeStopWords(query);
+
+    const sortedKeys = Object.keys(FAQ_DATA)
+        .filter(k => k !== 'default' && k !== 'above 60 indicate')
+        .sort((a, b) => b.length - a.length);
+
+    for (const key of sortedKeys) {
+        // Method A: Direct substring match (Clean vs Clean)
+        // This handles "poor quality" vs "poorquality"
+        const cleanKey = key.toLowerCase().replace(/[^a-z0-9]/g, '');
+        if (matchQuery.includes(cleanKey)) {
+            return FAQ_DATA[key];
+        }
+
+        // Method B: Stop-word agnostic match
+        // "why is the air quality poor" -> "airqualitypoor"
+        // Key "why is air quality poor" -> "airqualitypoor"
+        // Match!
+        const cleanKeyNoStop = removeStopWords(key.toLowerCase());
+        if (cleanKeyNoStop.length > 3 && cleanInput.includes(cleanKeyNoStop)) {
+            return FAQ_DATA[key];
+        }
+    }
+
+    // 4. Restricted Topics Fallback
+    const restrictedKeywords = ["increase tomorrow", "safe for me", "medicine", "prediction"];
+    if (restrictedKeywords.some(keyword => query.includes(keyword))) {
+        return FAQ_DATA["default"];
+    }
+
+    // 5. Hardcoded Greetings (as backup)
+    if (matchQuery === 'hi' || matchQuery === 'hello') {
+        return "Hello! I am the TGPCB Air Quality Assistant. Ask me about air quality categories or health precautions.";
+    }
+
+    // 6. Default Fallback
+    return FAQ_DATA["default"];
 }
 
 // Make globally available
 window.toggleChatbot = toggleChatbot;
-window.sendChatMessage = sendChatMessage;
+
+/* ========================================
+   COMPARISON MODE LOGIC
+   ======================================== */
+
+let comparisonMode = false;
+let firstZoneForComparison = null;
+
+function startComparisonMode() {
+    if (!selectedGridId) {
+        alert("Please select a zone first!");
+        return;
+    }
+    comparisonMode = true;
+    firstZoneForComparison = selectedGridId;
+
+    // Visual feedback
+    const btn = document.getElementById('compare-btn');
+    if (btn) {
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> ' + t('selectSecondZone');
+        btn.classList.add('selection-pulse');
+    }
+
+    // Toast notification could go here, but changing button text is simple enough
+}
+
+function exitComparisonMode() {
+    comparisonMode = false;
+    firstZoneForComparison = null;
+
+    document.getElementById('comparison-view').classList.add('hidden');
+    document.getElementById('selected-zone-view').classList.remove('hidden');
+    document.getElementById('grid-view').classList.remove('hidden');
+
+    // Reset button
+    const btn = document.getElementById('compare-btn');
+    if (btn) {
+        btn.innerHTML = '<i class="fa-solid fa-scale-balanced"></i> ' + t('compare');
+        btn.classList.remove('selection-pulse');
+    }
+}
+
+async function renderComparison(id1, id2) {
+    // Determine which ID is newly clicked (id2 might be same as id1 if user clicks same tile, but logic handles distinct clicks usually)
+    // Actually, updateDashboard calls renderHeatmap/Grid which re-attaches listeners.
+    // We need fresh data.
+
+    const [gridData] = await Promise.all([fetchData('/pm25-data')]);
+
+    const zone1 = gridData.find(g => g.id === id1);
+    const zone2 = gridData.find(g => g.id === id2);
+
+    if (!zone1 || !zone2) return;
+
+    document.getElementById('selected-zone-view').classList.add('hidden');
+    document.getElementById('grid-view').classList.add('hidden');
+    document.getElementById('comparison-view').classList.remove('hidden');
+
+    const container = document.getElementById('comparison-content');
+
+    // Determine winner (better air quality)
+    const z1Better = zone1.pm25Value < zone2.pm25Value;
+    const diff = Math.abs(zone1.pm25Value - zone2.pm25Value).toFixed(1);
+    const pctDiff = ((diff / Math.min(zone1.pm25Value, zone2.pm25Value)) * 100).toFixed(0);
+
+    const z1Class = z1Better ? 'winner' : 'loser';
+    const z2Class = !z1Better ? 'winner' : 'loser';
+
+    container.innerHTML = `
+        <div class="comparison-card ${z1Class}">
+            <div class="loc-name">${zone1.name}</div>
+            <div class="comp-val">${zone1.pm25Value.toFixed(1)}</div>
+            <div class="comp-label">PM2.5 (µg/m³)</div>
+            <div class="status cat-${zone1.category.trim().toLowerCase().replaceAll(' ', '-')}">${zone1.category}</div>
+            
+            <div class="comp-context">
+                <div class="comp-ctx-item">${t('trafficDensity')}: <b>${zone1.trafficIndex}%</b></div>
+                <div class="comp-ctx-item">${t('windSpeed')}: <b>${zone1.windSpeed}</b></div>
+            </div>
+            
+            ${z1Better
+            ? `<div class="diff-tag better"><i class="fa-solid fa-arrow-down"></i> ${diff} µg/m³ ${t('lower')}</div>`
+            : `<div class="diff-tag worse"><i class="fa-solid fa-arrow-up"></i> ${diff} µg/m³ ${t('higher')}</div>`
+        }
+        </div>
+        
+        <div class="vs-badge">${t('vs')}</div>
+        
+        <div class="comparison-card ${z2Class}">
+            <div class="loc-name">${zone2.name}</div>
+            <div class="comp-val">${zone2.pm25Value.toFixed(1)}</div>
+             <div class="comp-label">PM2.5 (µg/m³)</div>
+            <div class="status cat-${zone2.category.trim().toLowerCase().replaceAll(' ', '-')}">${zone2.category}</div>
+            
+             <div class="comp-context">
+                <div class="comp-ctx-item">${t('trafficDensity')}: <b>${zone2.trafficIndex}%</b></div>
+                <div class="comp-ctx-item">${t('windSpeed')}: <b>${zone2.windSpeed}</b></div>
+            </div>
+            
+             ${!z1Better
+            ? `<div class="diff-tag better"><i class="fa-solid fa-arrow-down"></i> ${diff} µg/m³ ${t('lower')}</div>`
+            : `<div class="diff-tag worse"><i class="fa-solid fa-arrow-up"></i> ${diff} µg/m³ ${t('higher')}</div>`
+        }
+        </div>
+    `;
+
+    // Reset selection mode state, but stay in comparison view until exit
+    comparisonMode = false;
+    const btn = document.getElementById('compare-btn');
+    if (btn) {
+        btn.innerHTML = '<i class="fa-solid fa-scale-balanced"></i> ' + t('compare');
+        btn.classList.remove('selection-pulse');
+    }
+}
+
+// Make global
+window.startComparisonMode = startComparisonMode;
+
 
