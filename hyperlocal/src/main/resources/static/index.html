@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <title data-i18n="appTitle">Hyperlocal PM2.5 Monitor - TGPCB</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- CSS Loading Order is Critical -->
+    <link rel="stylesheet" href="style.css?v=102.0">
+    <link rel="stylesheet" href="dark-mode.css?v=3.0">
+    <link rel="stylesheet" href="mobile-fixes.css?v=3.0">
+
+    <!-- Chart.js for historical data visualization -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+</head>
+
+<body>
+    <header>
+        <div class="header-content">
+            <!-- Title and Controls Section -->
+            <div
+                style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1rem;">
+                <div style="flex: 1; min-width: 280px;">
+                    <h1><i class="fa-solid fa-cloud-bolt"></i> <span data-i18n="appTitle">Hyderabad Hyperlocal PM2.5
+                            Monitoring System</span></h1>
+                    <p class="description" data-i18n="appDescription">Zone-level PM2.5 estimation tool for regulatory
+                        decision support and pollution hotspot prioritization.</p>
+                </div>
+                <div style="display: flex; gap: 10px; align-items: center; justify-self: flex-end;">
+                    <!-- Language Selector -->
+                    <div class="language-selector">
+                        <div class="lang-option active" data-lang="en" onclick="changeLanguage('en')">EN</div>
+                        <div class="lang-option" data-lang="te" onclick="changeLanguage('te')">తె</div>
+                        <div class="lang-option" data-lang="hi" onclick="changeLanguage('hi')">हि</div>
+                    </div>
+                    <!-- Theme Toggle -->
+                    <button class="theme-toggle" onclick="toggleTheme()" title="Toggle Dark Mode">
+                        <i class="fa-solid fa-moon" id="theme-icon"></i>
+                        <span id="theme-text">Dark</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Status Bar Section -->
+            <div id="last-updated">
+                <span>
+                    <span data-i18n="status">Status</span>: <span class="live-indicator">● <span
+                            data-i18n="live">LIVE</span></span> |
+                    <span data-i18n="lastSync">Last Synchronized</span>: <span id="time-span">-</span>
+                </span>
+                <a href="/alerts/export" id="download-report-btn" class="header-action-btn"
+                    download="PM25_Alert_Report_Hyderabad.csv" title="Download Alert Report">
+                    <i class="fa-solid fa-file-csv"></i> <span data-i18n="downloadReport">Download Alert Report</span>
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <section id="system-guidance" class="card">
+            <h3><i class="fa-solid fa-shield-halved"></i> <span data-i18n="decisionSupport">Decision Support
+                    Guidance</span></h3>
+            <p data-i18n="systemDescription">This system utilizes fixed-grid PM2.5 estimation (500m × 500m) based on
+                public AQI station data, traffic density, and weather factors. High-risk zones (>60 µg/m³) are
+                automatically flagged for regulatory intervention and prioritized inspection.</p>
+        </section>
+
+        <!-- Historical Data Chart -->
+        <section class="chart-container card">
+            <div class="chart-title">
+                <i class="fa-solid fa-chart-line"></i>
+                <span data-i18n="cityTrend">City Average PM2.5 Trend (24 Hours)</span>
+            </div>
+            <div class="chart-wrapper">
+                <canvas id="cityTrendChart"></canvas>
+            </div>
+        </section>
+
+        <section id="stats-overview">
+            <div class="stat-card card">
+                <h3 data-i18n="avgPM25">Average PM2.5 (Hyderabad)</h3>
+                <p id="avg-pm25">-- µg/m³</p>
+            </div>
+            <div class="stat-card card">
+                <h3 data-i18n="topHotspot">Current Top Hotspot</h3>
+                <p id="top-hotspot">--</p>
+            </div>
+            <div class="stat-card card alert-counter-card">
+                <h3><i class="fa-solid fa-triangle-exclamation"></i> <span data-i18n="activeAlerts">Active Alerts</span>
+                </h3>
+                <p id="alert-count">0</p>
+            </div>
+        </section>
+
+        <section id="dashboard-grid">
+            <div class="section-header">
+                <div style="display: flex; align-items: center; gap: 15px;">
+                    <h2 data-i18n="hyperlocalMap">Hyperlocal Air Quality Map</h2>
+                    <div id="live-indicator" class="live-status">
+                        <span class="pulse-dot"></span> <span data-i18n="liveData">LIVE DATA</span>: <span
+                            id="last-sync-time">--:--:--</span>
+                    </div>
+                </div>
+                <div id="legend-container" class="legend">
+                    <span class="legend-item" data-category="Good" onclick="filterCategory('Good')"><span
+                            class="box cat-good"></span> <span data-i18n="goodRange">Good (0-30)</span></span>
+                    <span class="legend-item" data-category="Moderate" onclick="filterCategory('Moderate')"><span
+                            class="box cat-moderate"></span> <span data-i18n="moderateRange">Mod. (31-60)</span></span>
+                    <span class="legend-item" data-category="Poor" onclick="filterCategory('Poor')"><span
+                            class="box cat-poor"></span> <span data-i18n="poorRange">Poor (61-90)</span></span>
+                    <span class="legend-item" data-category="Very Poor" onclick="filterCategory('Very Poor')"><span
+                            class="box cat-very-poor"></span> <span data-i18n="veryPoorRange">V. Poor
+                            (>90)</span></span>
+                    <button class="refresh-btn" onclick="manualRefresh()" title="Force Refresh Data">
+                        <i class="fa-solid fa-sync"></i> <span data-i18n="refresh">Refresh</span>
+                    </button>
+                </div>
+            </div>
+            <div id="filter-status" class="filter-status-bar"
+                style="display:none; margin-bottom: 1rem; background: var(--indigo-50); padding: 10px; border-radius: 8px; font-size: 0.9rem; font-weight: 600; color: var(--indigo-900);">
+                <i class="fa-solid fa-filter"></i> Active Filter: <span id="active-filter-name"
+                    style="color: var(--rose-600)">None</span>
+                <button onclick="filterCategory(activeCategoryFilter)"
+                    style="margin-left: 10px; padding: 2px 8px; border-radius: 4px; border: 1px solid var(--rose-300); background: white; color: var(--rose-600); cursor: pointer;">Clear
+                    Filter</button>
+            </div>
+
+            <div class="dashboard-split">
+                <div id="spatial-view" class="card">
+                    <div class="view-header">
+                        <h3>Hyperlocal Monitoring Grid (Conceptual Zone View)</h3>
+                        <p style="font-size: 0.85rem; color: var(--slate-500); margin-top: 8px;">
+                            <i class="fa-solid fa-info-circle"></i> This grid represents aggregated monitoring zones
+                            derived from spatial clustering of nearby data points. It is intended for relative risk
+                            visualization and decision support, not exact geographic mapping.
+                        </p>
+                    </div>
+                    <p style="font-size: 0.9rem; color: var(--slate-600); margin-bottom: 1rem;">Click any zone to view
+                        detailed environmental data.</p>
+                    <div class="heatmap-grid" id="heatmap-container"></div>
+                </div>
+
+                <div id="details-view">
+                    <div id="selected-zone-view" class="card">
+                        <div class="view-header">
+                            <h3>Detailed Zone Analysis</h3>
+                            <p style="font-size: 0.85rem; color: var(--slate-500); margin-top: 8px;">Estimated PM2.5
+                                (Zone-Level) with environmental context factors.</p>
+                        </div>
+                        <div id="selected-zone-content">
+                            <p style="text-align: center; color: var(--slate-400); padding: 2rem;">Select a zone from
+                                the map to view details.</p>
+                        </div>
+                    </div>
+
+                    <div id="grid-view" class="card">
+                        <div class="view-header">
+                            <h3>Zone Grid Data</h3>
+                            <p style="font-size: 0.85rem; color: var(--slate-500); margin-top: 8px;">Real-time PM2.5
+                                levels across all monitoring zones.</p>
+                        </div>
+                        <div class="grid-display" id="grid-container"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="insights-row">
+            <div id="hotspot-list" class="card">
+                <h2 data-i18n="topHotspots">Top PM2.5 Hotspots (Persistent Zones)</h2>
+                <p style="font-size: 0.85rem; color: var(--slate-600); margin-bottom: 1rem;" data-i18n="hotspotDesc">
+                    The following zones show consistent high PM2.5 levels over multiple monitoring cycles, requiring
+                    immediate administrative attention.
+                </p>
+                <table id="hotspot-table">
+                    <thead>
+                        <tr>
+                            <th data-i18n="gridId">Grid ID</th>
+                            <th data-i18n="location">Location</th>
+                            <th data-i18n="pm25Value">PM2.5 Value</th>
+                            <th data-i18n="regulatoryStatus">Regulatory Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="hotspot-table-body">
+                        <tr>
+                            <td colspan="4" style="text-align: center; color: var(--slate-400);">Loading...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div id="alert-panel" class="card">
+                <h2 data-i18n="alertFeed">High-Pollution Alert Feed</h2>
+                <div id="alert-feed">
+                    <p style="text-align: center; color: var(--slate-400); padding: 1rem;" data-i18n="noAlerts">System
+                        monitoring: No active alerts.</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p data-i18n="copyright">© 2025 TGPCB - Environmental Decision Support System</p>
+        <p class="regulatory-note" data-i18n="regulatoryNote">
+            Health impact indicators are shown for awareness and regulatory decision support.
+        </p>
+    </footer>
+
+    <!-- Chatbot -->
+    <div id="chatbot-container">
+        <button id="chatbot-toggle" onclick="toggleChatbot()">
+            <i class="fa-solid fa-comment-dots"></i>
+        </button>
+        <div id="chatbot-window">
+            <div class="chatbot-header">
+                <span><i class="fa-solid fa-robot"></i> Air Quality Assistant</span>
+                <button onclick="toggleChatbot()"
+                    style="background: none; border: none; color: white; cursor: pointer; font-size: 1.2rem;">×</button>
+            </div>
+            <div id="chatbot-messages"></div>
+            <div class="chatbot-input-area">
+                <input type="text" id="chatbot-text-input" placeholder="Ask about air quality..."
+                    onkeypress="if(event.key==='Enter') sendChatMessage()">
+                <button id="chatbot-send-btn" onclick="sendChatMessage()">
+                    <i class="fa-solid fa-paper-plane"></i>
+                </button>
+            </div>
+            <div class="chatbot-disclaimer">
+                <i class="fa-solid fa-info-circle"></i> Simulated responses for demonstration
+            </div>
+        </div>
+    </div>
+
+    <!-- Inline Scripts for Filtering & Manual Refresh -->
+    <script>
+        let activeCategoryFilter = null;
+
+        function filterCategory(category) {
+            if (activeCategoryFilter === category) {
+                // Clear filter
+                activeCategoryFilter = null;
+                document.getElementById('filter-status').style.display = 'none';
+                document.querySelectorAll('.legend-item').forEach(item => item.classList.remove('active'));
+                document.querySelectorAll('.grid-item, .heatmap-tile').forEach(el => el.style.display = '');
+            } else {
+                // Apply filter
+                activeCategoryFilter = category;
+                document.getElementById('filter-status').style.display = 'block';
+                document.getElementById('active-filter-name').textContent = category;
+
+                // Update legend
+                document.querySelectorAll('.legend-item').forEach(item => {
+                    item.classList.toggle('active', item.dataset.category === category);
+                });
+
+                // Filter grid items
+                document.querySelectorAll('.grid-item').forEach(item => {
+                    item.style.display = item.dataset.category === category ? '' : 'none';
+                });
+
+                // Filter heatmap tiles
+                document.querySelectorAll('.heatmap-tile').forEach(tile => {
+                    tile.style.display = tile.dataset.category === category ? '' : 'none';
+                });
+            }
+        }
+
+        function manualRefresh() {
+            if (typeof updateDashboard === 'function') {
+                updateDashboard(true);
+            }
+        }
+    </script>
+    <script src="translations.js?v=4.0"></script>
+    <script src="script.js?v=30.0"></script>
+</body>
+
+</html>

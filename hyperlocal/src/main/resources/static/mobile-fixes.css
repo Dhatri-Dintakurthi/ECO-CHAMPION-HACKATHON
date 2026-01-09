@@ -1,0 +1,40 @@
+/* ========================================
+   STRICT ZOOM/MOBILE FIXES (OVERRIDE)
+   ======================================== */
+
+/* Force Flex Wrapping on Header Content */
+header .header-content>div:first-child {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    width: 100% !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+}
+
+/* Title Section - Allowed to shrink but maintains min-width */
+header .header-content>div:first-child>div:first-child {
+    flex: 1 1 300px !important;
+    min-width: 0 !important;
+    /* Allow shrinking below min content if absolutely necessary */
+    width: auto !important;
+}
+
+/* Button Section - Prevent shrinking, force wrapping if insufficient space */
+header .header-content>div:first-child>div:last-child {
+    flex: 0 0 auto !important;
+    white-space: nowrap !important;
+    display: flex !important;
+}
+
+/* Prevent text overflow in title */
+header h1 {
+    white-space: normal !important;
+    overflow-wrap: break-word !important;
+}
+
+/* Chart fix */
+.chart-wrapper {
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow: hidden !important;
+}

@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Filter Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+
+        .test-result {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 5px;
+        }
+
+        .success {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        button {
+            margin: 5px;
+            padding: 10px 20px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Filter Function Test</h1>
+
+    <div>
+        <button onclick="testFilter('Good')">Test Good</button>
+        <button onclick="testFilter('Moderate')">Test Moderate</button>
+        <button onclick="testFilter('Poor')">Test Poor</button>
+        <button onclick="testFilter('Very Poor')">Test Very Poor</button>
+    </div>
+
+    <div id="results"></div>
+
+    <script>
+        function testFilter(category) {
+            const resultsDiv = document.getElementById('results');
+            const result = document.createElement('div');
+            result.className = 'test-result success';
+            result.textContent = `✓ filterCategory('${category}') called successfully!`;
+            resultsDiv.appendChild(result);
+
+            // Try to call the actual function if it exists
+            if (typeof filterCategory === 'function') {
+                filterCategory(category);
+                result.textContent += ' - Function executed on main page.';
+            } else {
+                result.textContent += ' - Function not found (expected on test page).';
+            }
+        }
+    </script>
+
+    <hr>
+    <h2>Instructions:</h2>
+    <ol>
+        <li>Open the main dashboard: <a href="http://localhost:8080" target="_blank">http://localhost:8080</a></li>
+        <li>Press <strong>Ctrl + Shift + R</strong> to hard refresh</li>
+        <li>Open browser console (F12)</li>
+        <li>Type: <code>filterCategory('Very Poor')</code></li>
+        <li>Press Enter</li>
+        <li>Check if the filter works</li>
+    </ol>
+
+    <h3>Expected Console Output:</h3>
+    <pre>[FILTER ATTEMPT] Very Poor
+[FILTER] Active: Very Poor
+[HEATMAP RENDER] Grid: ... Category: very poor Filter: very poor
+[HEATMAP] Hiding tile: ...</pre>
+</body>
+
+</html>

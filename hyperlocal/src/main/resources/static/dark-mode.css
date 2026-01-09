@@ -1,0 +1,354 @@
+/* Dark Mode Styles */
+body.dark-mode {
+    --indigo-950: #e0e7ff;
+    --indigo-900: #c7d2fe;
+    --indigo-800: #a5b4fc;
+    --indigo-600: #818cf8;
+    --slate-900: #f8fafc;
+    --slate-800: #f1f5f9;
+    --slate-100: #1e293b;
+    --slate-50: #0f172a;
+    --emerald-500: #34d399;
+    --amber-500: #fbbf24;
+    --rose-500: #fb7185;
+    --rose-900: #fda4af;
+
+    --bg-gradient: radial-gradient(at 0% 0%, #1e293b 0, transparent 50%),
+        radial-gradient(at 50% 0%, #312e81 0, transparent 50%);
+    --glass: rgba(15, 23, 42, 0.85);
+    --glass-border: rgba(255, 255, 255, 0.1);
+    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.3);
+    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.4), 0 2px 4px -2px rgb(0 0 0 / 0.3);
+    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.5), 0 4px 6px -4px rgb(0 0 0 / 0.4);
+
+    background-color: #0f172a;
+    color: #f1f5f9;
+}
+
+body.dark-mode header {
+    background-color: #1e1b4b;
+    background-image: linear-gradient(to right, #1e1b4b, #312e81);
+}
+
+body.dark-mode .description {
+    color: #c7d2fe;
+}
+
+body.dark-mode .card {
+    background: rgba(30, 41, 59, 0.85);
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+body.dark-mode .card:hover {
+    border-color: #818cf8;
+}
+
+body.dark-mode h2,
+body.dark-mode h3 {
+    color: #e0e7ff;
+}
+
+body.dark-mode .stat-card {
+    background: rgba(30, 41, 59, 0.9);
+}
+
+body.dark-mode .stat-card::after {
+    background: rgba(79, 70, 229, 0.2);
+}
+
+body.dark-mode .stat-card h3 {
+    color: #a5b4fc;
+}
+
+body.dark-mode .stat-card p {
+    color: #e0e7ff;
+}
+
+body.dark-mode #system-guidance {
+    background: linear-gradient(135deg, #312e81 0%, #1e1b4b 100%);
+    border-color: #4f46e5;
+}
+
+body.dark-mode .legend {
+    background: rgba(30, 41, 59, 0.95);
+}
+
+body.dark-mode .legend-item:hover {
+    background: rgba(79, 70, 229, 0.2);
+}
+
+body.dark-mode .legend-item.active {
+    background: rgba(79, 70, 229, 0.3);
+    color: #c7d2fe;
+}
+
+body.dark-mode .heatmap-grid {
+    background: #1e293b;
+    border-color: #334155;
+}
+
+body.dark-mode .grid-item {
+    background: rgba(30, 41, 59, 0.9);
+    border-color: #334155;
+}
+
+body.dark-mode .grid-item .loc-name {
+    color: #cbd5e1;
+    border-bottom-color: #334155;
+}
+
+body.dark-mode .grid-item .pm-val {
+    color: #e0e7ff;
+}
+
+body.dark-mode .grid-item .weather-row {
+    background: rgba(79, 70, 229, 0.15);
+    color: #c7d2fe;
+}
+
+body.dark-mode table {
+    background: rgba(30, 41, 59, 0.5);
+}
+
+body.dark-mode th {
+    background: rgba(30, 41, 59, 0.8);
+    color: #cbd5e1;
+}
+
+body.dark-mode td {
+    color: #e2e8f0;
+}
+
+body.dark-mode table tr:hover {
+    background-color: rgba(79, 70, 229, 0.1);
+}
+
+body.dark-mode .pm-pill {
+    background: rgba(79, 70, 229, 0.2);
+    color: #e0e7ff;
+}
+
+body.dark-mode .alert-item {
+    background: rgba(251, 113, 133, 0.15);
+    border-left-color: #fb7185;
+}
+
+body.dark-mode .health-indicator-alert {
+    background: rgba(251, 113, 133, 0.2);
+    color: #fda4af;
+}
+
+body.dark-mode #selected-zone-view {
+    background: linear-gradient(to right, rgba(30, 41, 59, 0.9), rgba(15, 23, 42, 0.9));
+    border-left-color: #818cf8;
+}
+
+body.dark-mode .environmental-context {
+    background: rgba(30, 41, 59, 0.6);
+    border-color: rgba(79, 70, 229, 0.3);
+}
+
+body.dark-mode .env-item .label {
+    color: #94a3b8;
+}
+
+body.dark-mode .env-item .value {
+    color: #e0e7ff;
+}
+
+body.dark-mode .mini-card {
+    background: rgba(30, 41, 59, 0.9) !important;
+    border-color: rgba(79, 70, 229, 0.3) !important;
+}
+
+body.dark-mode .ref-text {
+    color: #cbd5e1;
+}
+
+body.dark-mode footer {
+    background: rgba(30, 41, 59, 0.9);
+    color: #94a3b8;
+}
+
+body.dark-mode .regulatory-note {
+    color: #64748b;
+}
+
+/* Dark mode heatmap tiles - slightly brighter for visibility */
+body.dark-mode .tile-good {
+    background-color: #34d399;
+}
+
+body.dark-mode .tile-moderate {
+    background-color: #fbbf24;
+}
+
+body.dark-mode .tile-poor {
+    background-color: #fb7185;
+}
+
+body.dark-mode .tile-very-poor {
+    background-color: #f87171;
+}
+
+/* Chatbot dark mode */
+body.dark-mode #chatbot-window {
+    background: rgba(30, 41, 59, 0.95);
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+body.dark-mode .chatbot-header {
+    background: linear-gradient(135deg, #312e81, #1e1b4b);
+}
+
+body.dark-mode .bot-msg {
+    background: rgba(79, 70, 229, 0.2);
+    color: #e0e7ff;
+}
+
+body.dark-mode .user-msg {
+    background: rgba(99, 102, 241, 0.3);
+    color: #e0e7ff;
+}
+
+body.dark-mode .option-btn {
+    background: rgba(79, 70, 229, 0.2);
+    border-color: rgba(129, 140, 248, 0.3);
+    color: #c7d2fe;
+}
+
+body.dark-mode .option-btn:hover {
+    background: rgba(79, 70, 229, 0.4);
+}
+
+body.dark-mode #chatbot-text-input {
+    background: rgba(30, 41, 59, 0.8);
+    border-color: rgba(255, 255, 255, 0.1);
+    color: #e0e7ff;
+}
+
+body.dark-mode #chatbot-send-btn {
+    background: #6366f1;
+}
+
+body.dark-mode .chatbot-disclaimer {
+    color: #94a3b8;
+}
+
+/* Theme toggle button */
+.theme-toggle {
+    background: rgba(255, 255, 255, 0.25) !important;
+    border: 2px solid rgba(255, 255, 255, 0.4) !important;
+    color: white !important;
+    padding: 10px 18px !important;
+    border-radius: 10px !important;
+    cursor: pointer !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    font-size: 0.9rem !important;
+    font-weight: 700 !important;
+    transition: all 0.3s ease !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2) !important;
+    white-space: nowrap !important;
+}
+
+.theme-toggle:hover {
+    background: rgba(255, 255, 255, 0.35) !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+}
+
+.theme-toggle i {
+    font-size: 1.1rem !important;
+}
+
+/* Language selector */
+.language-selector {
+    display: flex !important;
+    gap: 6px !important;
+    background: rgba(255, 255, 255, 0.25) !important;
+    padding: 6px !important;
+    border-radius: 10px !important;
+    border: 2px solid rgba(255, 255, 255, 0.4) !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2) !important;
+}
+
+.lang-option {
+    padding: 8px 14px !important;
+    border-radius: 6px !important;
+    cursor: pointer !important;
+    font-size: 0.85rem !important;
+    font-weight: 700 !important;
+    color: rgba(255, 255, 255, 0.9) !important;
+    transition: all 0.2s ease !important;
+    user-select: none !important;
+    min-width: 40px !important;
+    text-align: center !important;
+}
+
+.lang-option:hover {
+    background: rgba(255, 255, 255, 0.2) !important;
+    color: white !important;
+}
+
+.lang-option.active {
+    background: rgba(255, 255, 255, 0.35) !important;
+    color: white !important;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2) !important;
+}
+
+body.dark-mode .theme-toggle {
+    background: rgba(255, 255, 255, 0.15) !important;
+    border-color: rgba(255, 255, 255, 0.25) !important;
+}
+
+body.dark-mode .language-selector {
+    background: rgba(255, 255, 255, 0.15) !important;
+    border-color: rgba(255, 255, 255, 0.25) !important;
+}
+
+/* Chart container */
+.chart-container {
+    background: white;
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    box-shadow: var(--shadow-md);
+}
+
+body.dark-mode .chart-container {
+    background: rgba(30, 41, 59, 0.9);
+}
+
+.chart-wrapper {
+    position: relative;
+    height: 300px;
+}
+
+.chart-title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--indigo-950);
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+body.dark-mode .chart-title {
+    color: #e0e7ff;
+}
+
+/* Smooth theme transition */
+body,
+.card,
+header,
+.stat-card,
+.legend,
+.grid-item,
+table,
+.alert-item,
+#chatbot-window {
+    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}

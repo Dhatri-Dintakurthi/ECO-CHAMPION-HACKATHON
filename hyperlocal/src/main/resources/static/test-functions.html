@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Function Test - Hyperlocal Monitor</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+
+        .test-section {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        button {
+            padding: 10px 20px;
+            margin: 5px;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            background: #4CAF50;
+            color: white;
+            font-size: 14px;
+        }
+
+        button:hover {
+            background: #45a049;
+        }
+
+        .result {
+            margin-top: 10px;
+            padding: 10px;
+            background: #e8f5e9;
+            border-left: 4px solid #4CAF50;
+            display: none;
+        }
+
+        .error {
+            background: #ffebee;
+            border-left-color: #f44336;
+        }
+
+        code {
+            background: #f5f5f5;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+
+        .info {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>🔧 Function Test Page</h1>
+
+    <div class="info">
+        <strong>Purpose:</strong> This page tests if the JavaScript functions are working correctly.
+        <br><strong>Version:</strong> v6.0 (Cache-busted)
+    </div>
+
+    <div class="test-section">
+        <h2>Test 1: Check if Functions Exist</h2>
+        <button onclick="checkFunctions()">Check Functions</button>
+        <div id="check-result" class="result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Test 2: Test Filter Function</h2>
+        <button onclick="testFilter('Good')">Test Good Filter</button>
+        <button onclick="testFilter('Moderate')">Test Moderate Filter</button>
+        <button onclick="testFilter('High')">Test High Filter</button>
+        <div id="filter-result" class="result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Test 3: Test Refresh Function</h2>
+        <button onclick="testRefresh()">Test Refresh</button>
+        <div id="refresh-result" class="result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Manual Console Test</h2>
+        <p>Open browser console (F12) and type:</p>
+        <code>filterCategory('High')</code>
+        <br><br>
+        <code>manualRefresh()</code>
+        <p style="margin-top: 10px;">If these work in console but not on the main page, it's a browser cache issue.</p>
+    </div>
+
+    <div class="test-section">
+        <h2>✅ Solution: Force Cache Refresh</h2>
+        <ol>
+            <li>Go to <a href="http://localhost:8080" target="_blank">http://localhost:8080</a></li>
+            <li>Press <strong>Ctrl + Shift + Delete</strong></li>
+            <li>Select "Cached images and files"</li>
+            <li>Click "Clear data"</li>
+            <li>Close and reopen the browser</li>
+            <li>Navigate to http://localhost:8080 again</li>
+        </ol>
+        <p><strong>Or try:</strong> Open in Incognito/Private mode</p>
+    </div>
+
+    <script>
+        function checkFunctions() {
+            const result = document.getElementById('check-result');
+            result.style.display = 'block';
+
+            const checks = [];
+            checks.push(`filterCategory: ${typeof filterCategory === 'function' ? '✅ EXISTS' : '❌ MISSING'}`);
+            checks.push(`manualRefresh: ${typeof manualRefresh === 'function' ? '✅ EXISTS' : '❌ MISSING'}`);
+            checks.push(`updateDashboard: ${typeof updateDashboard === 'function' ? '✅ EXISTS' : '❌ MISSING'}`);
+
+            result.innerHTML = checks.join('<br>');
+            result.className = 'result';
+        }
+
+        function testFilter(category) {
+            const result = document.getElementById('filter-result');
+            result.style.display = 'block';
+
+            if (typeof filterCategory === 'function') {
+                try {
+                    filterCategory(category);
+                    result.innerHTML = `✅ filterCategory('${category}') called successfully!<br>Check the main dashboard to see if filtering works.`;
+                    result.className = 'result';
+                } catch (e) {
+                    result.innerHTML = `❌ Error: ${e.message}`;
+                    result.className = 'result error';
+                }
+            } else {
+                result.innerHTML = `❌ filterCategory function not found. Browser cache issue!`;
+                result.className = 'result error';
+            }
+        }
+
+        function testRefresh() {
+            const result = document.getElementById('refresh-result');
+            result.style.display = 'block';
+
+            if (typeof manualRefresh === 'function') {
+                try {
+                    manualRefresh();
+                    result.innerHTML = `✅ manualRefresh() called successfully!<br>Check the main dashboard to see if data refreshed.`;
+                    result.className = 'result';
+                } catch (e) {
+                    result.innerHTML = `❌ Error: ${e.message}`;
+                    result.className = 'result error';
+                }
+            } else {
+                result.innerHTML = `❌ manualRefresh function not found. Browser cache issue!`;
+                result.className = 'result error';
+            }
+        }
+    </script>
+
+    <!-- Load the main script to test if functions are available -->
+    <script src="script.js?v=6.0"></script>
+</body>
+
+</html>
